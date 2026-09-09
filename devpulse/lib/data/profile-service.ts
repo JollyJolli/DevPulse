@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { allowRefresh } from "@/lib/cache/refresh";
 import { calculateActivityDNA, contributionBuckets } from "@/lib/analytics/activity";
 import { detectDeveloperEras } from "@/lib/analytics/eras";
 import { calculateFocus } from "@/lib/analytics/focus-score";
@@ -60,6 +61,7 @@ async function loadProfileDashboardData(
 ): Promise<ProfileDashboardData | null> {
   const username = normalizeUsername(rawUsername);
   if (!username) return null;
+  refresh = allowRefresh("profile:" + username, refresh);
   const [user, repositories] = await Promise.all([
     getGitHubUser(username, refresh),
     getRepositories(username, refresh),
@@ -95,15 +97,8 @@ async function loadProfileDashboardData(
   }
 
   if (!contributionData) {
-    try {
-      const events = await getPublicEvents(user.login, refresh);
-      contributionData = buildEventFallback(events, range);
-    } catch (error) {
-      contributionData = buildEventFallback([], range);
-      dataNotice =
-        error instanceof GitHubApiError &&Dem && error.kind === "rate-limit" ? "rate-limit" : "partial";
-      dataNoticeMessage = publicGitHubErrorMessage(error);
-    }
+    const events = await getPublicEvents(user.login, refresh);
+    contributionData = buildEventFallback(events, range);
   }
 
   if (!availableYears.length) availableYears = fallbackYears(user.created_at, repositories);

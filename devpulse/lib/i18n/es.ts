@@ -1,6 +1,7 @@
 import type { Dictionary } from "@/lib/i18n/en";
 
 export const es: Dictionary = {
+  detail: { range: "Periodo", language: "Idioma", open: "Abiertas", merged: "Fusionadas", medianMerge: "Mediana del tiempo de fusión", scope: "El impacto usa hasta 12 commits del propietario entre los últimos 100, filtrados a 90 días. Las reactivaciones usan los últimos 100 commits. Las demás secciones usan la última página pública de la API; no son totales históricos.", model: "Modelo de DevPulse", githubData: "Datos de GitHub", analytics: "Análisis transparente", history: "Historia explorable", periodMilestones: "Hitos del periodo; las fechas históricas de desbloqueo no están disponibles." },
   languageName: "Español",
   navigation: {
     home: "Inicio",

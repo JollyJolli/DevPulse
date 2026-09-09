@@ -37,7 +37,7 @@ function streakRuns(days: readonly ContributionDay[]): number[] {
 }
 
 export function calculateStreaks(days: readonly ContributionDay[], now = new Date()) {
-  const calendar = normalizedDays(normalizedDays(days));
+  const calendar = normalizedDays(days);
   const runs = streakRuns(calendar);
   const byDate = new Map(calendar.map((day) => [day.date, day.contributionCount]));
   let cursor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -63,6 +63,7 @@ function bestGroupedRecord(
     const key = keyForDay(new Date(`${day.date}T12:00:00.000Z`));
     totals.set(key, (totals.get(key) ?? 0) + day.contributionCount);
   }
+  if (![...totals.values()].some((value) => value > 0)) return null;
   return [...totals.entries()].reduce<ActivityRecord | null>(
     (best, [label, value]) => (!best || value > best.value ? { label, value } : best),
     null,
@@ -99,9 +100,13 @@ export function calculateActivityDNA(
   const activityVariance = variance(allValues);
   const standardDeviation = Math.sqrt(variance(activeValues));
   const coefficient = average > 0 ? standardDeviation / average : 0;
+  const allAverage = mean(allValues);
+  const allCoefficient =
+    allAverage > 0 ? Math.sqrt(activityVariance) / allAverage : 0;
   const regularity = average > 0 ? (1 - clamp(coefficient, 0, 1)) * 100 : 0;
   const consistency = Math.round(activeDayPercentage * 0.65 + regularity * 0.35);
-  const burstiness = average > 0 ? Math.round((coefficient / (coefficient + 1)) * 100) : 0;
+  const burstiness =
+    allAverage > 0 ? Math.round((allCoefficient / (allCoefficient + 1)) * 100) : 0;
   const weekdays = weekdayActivity(days);
   const weekendContributions = weekdays[5].value + weekdays[6].value;
   const totalContributions = sum(allValues);

@@ -1,12 +1,8 @@
 import "server-only";
 
 import { cache } from "react";
-import { calculateActivityDNA } from "@/lib/analytics/activity";
-import { detectDeveloperEras, eraForYear } from "@/lib/analytics/eras";
-import { calculateFocus } from "@/lib/analytics/focus-score";
-import { buildTechJourney, calculateLanguageDistribution } from "@/lib/analytics/languages";
-import { buildActiveProjects } from "@/lib/analytics/repositories";
-import { buildTrophyFamilies, unlockTrophies } from "@/lib/analytics/trophies";
+import { allowRefresh } from "@/lib/cache/refresh";
+import { buildWrappedSummary } from "@/lib/analytics/wrapped";
 import { hasGitHubToken } from "@/lib/github/client";
 import {
   buildEventFallback,
@@ -17,7 +13,6 @@ import { getPublicEvents } from "@/lib/github/events";
 import { getRepositories } from "@/lib/github/repositories";
 import { getGitHubUser } from "@/lib/github/users";
 import { yearDates } from "@/lib/utils/dates";
-import { percentage, sum } from "@/lib/utils/numbers";
 import { normalizeUsername } from "@/lib/utils/username";
 import type { ContributionData } from "@/types/analytics";
 import type { WrappedSummary } from "@/types/profile";
@@ -45,6 +40,7 @@ async function loadWrappedSummary(
   const username = normalizeUsername(rawUsername);
   const currentYear = new Date().getUTCFullYear();
   if (!username || !Number.isInteger(year) || year < 2008 || year > currentYear) return null;
+  refresh = allowRefresh("wrapped:" + username, refresh);
   const [user, repositories] = await Promise.all([
     getGitHubUser(username, refresh),
     getRepositories(username, refresh),
@@ -57,7 +53,8 @@ async function loadWrappedSummary(
     const dates = yearDates(year);
     contributionData = await getContributionRange(user.login, dates.from, dates.to, refresh);
   } else if (year === currentYear) {
-    contributionData = buildEventFallback(await getPublicEvents(user.login, refresh), "30D");
+    const events = (await getPublicEvents(user.login, refresh)).filter((event) => new Date(event.created_at).getUTCFullYear() === year);
+    contributionData = { ...buildEventFallback(events, "30D"), limited: true };
   }
   contributionData ??= emptyYear();
   if (!availableYears.length) {
@@ -69,43 +66,7 @@ async function loadWrappedSummary(
     ].sort((a, b) => b - a);
   }
 
-  const activity = calculateActivityDNA(contributionData.days);
-  const focus = calculateFocus(contributionData.repoContributions);
-  const languages = calculateLanguageDistribution(repositories, contributionData.repoContributions);
-  const activeProjects = buildActiveProjects(repositories, contributionData.repoContributions);
-  const projectsStarted = repositories.filter(
-    (repo) => !repo.fork && new Date(repo.created_at).getUTCFullYear() === year,
-  );
-  const externalCount = sum(
-    contributionData.repoContributions
-      .filter((repo) => repo.nameWithOwner.split("/")[0]?.toLowerCase() !== user.login.toLowerCase())
-      .map((repo) => repo.count),
-  );
-  const totalRepoActivity = sum(contributionData.repoContributions.map((repo) => repo.count));
-  const journey = buildTechJourney(repositories);
-  const eras = detectDeveloperEras(journey, repositories);
-  const trophyFamilies = buildTrophyFamilies({
-    user,
-    repositories,
-    contributionData,
-    activity,
-    languages,
-    externalContributionPercentage: percentage(externalCount, totalRepoActivity),
-  });
-
-  return {
-    user,
-    year,
-    contributionData,
-    activity,
-    focus,
-    languages,
-    topProject: activeProjects.find((project) => project.count > 0) ?? null,
-    projectsStarted,
-    trophies: unlockTrophies(trophyFamilies),
-    era: eraForYear(eras, year),
-    availableYears,
-  };
+  return buildWrappedSummary(user, repositories, contributionData, year, availableYears);
 }
 
 export const getWrappedSummary = cache(loadWrappedSummary);

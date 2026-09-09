@@ -78,7 +78,7 @@ export function FocusProjects({ data, dictionary: t }: { data: ProfileDashboardD
                       {repo?.description || t.projects.noDescription}
                     </p>
                     <dl className="mt-5 flex flex-wrap gap-x-5 gap-y-3 text-xs font-bold text-black/55">
-                      {repo?.language ? <Meta label="Language" value={repo.language} /> : null}
+                      {repo?.language ? <Meta label={t.detail.language} value={repo.language} /> : null}
                       {repo ? <Meta label={t.projects.lastPush} value={relativeAge(repo.pushed_at, new Date(), data.locale)} /> : null}
                       {repo ? <Meta label={t.projects.stars} value={formatNumber(repo.stargazers_count, data.locale)} /> : null}
                       {repo ? <Meta label={t.projects.forks} value={formatNumber(repo.forks_count, data.locale)} /> : null}

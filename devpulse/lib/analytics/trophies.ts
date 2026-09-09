@@ -36,7 +36,7 @@ export function buildTrophyFamilies(inputs: TrophyInputs): TrophyFamily[] {
   const healthScores = repositories.map((repo) => calculateRepositoryHealth(repo, now).score);
   const active30 = repositories.filter((repo) => daysSince(repo.pushed_at, now) <= 30).length;
   const active90 = repositories.filter((repo) => daysSince(repo.pushed_at, now) <= 90).length;
-  const active365 = repositories.filter((repo) => daysSince(repo.pushed_at, now) <= 365).length;
+  const active365 = original.filter((repo) => daysSince(repo.pushed_at, now) <= 365).length;
   const descriptionCoverage = percentage(
     repositories.filter((repo) => Boolean(repo.description)).length,
     repositories.length,
@@ -154,5 +154,10 @@ export function unlockTrophies(families: readonly TrophyFamily[]): TrophyProgres
     .filter((item): item is NonNullable<typeof item> => item !== null)
     .sort((a, b) => b.progress - a.progress || a.family.localeCompare(b.family));
 
-  return { all, highest, next, totalPossible: families.length * TROPHY_TIERS.length };
+  return {
+    all,
+    highest,
+    next,
+    totalPossible: sum(families.map((family) => family.thresholds.length)),
+  };
 }

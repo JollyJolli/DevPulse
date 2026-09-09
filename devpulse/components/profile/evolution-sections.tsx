@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, CalendarRange, GitCompareArrows } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { formatNumber } from "@/lib/utils/numbers";
+import { localizeEvidence } from "@/lib/i18n/evidence";
 import type { Dictionary } from "@/lib/i18n/en";
 import type { ProfileDashboardData } from "@/types/profile";
 
@@ -76,12 +77,12 @@ export function EvolutionSections({
                   rel="noreferrer"
                   className="mt-1 flex w-fit items-center gap-2 text-xl font-black hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
-                  {event.title}<ArrowUpRight size={16} aria-hidden="true" />
+                  {localizeEvidence(event.title, data.locale)}<ArrowUpRight size={16} aria-hidden="true" />
                 </a>
               ) : (
-                <p className="mt-1 text-xl font-black">{event.title}</p>
+                <p className="mt-1 text-xl font-black">{localizeEvidence(event.title, data.locale)}</p>
               )}
-              <p className="mt-2 max-w-3xl font-medium text-black/55">{event.description}</p>
+              <p className="mt-2 max-w-3xl font-medium text-black/55">{localizeEvidence(event.description, data.locale)}</p>
             </li>
           ))}
         </ol>

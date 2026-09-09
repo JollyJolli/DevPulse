@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { allowRefresh } from "@/lib/cache/refresh";
 import { GITHUB_REQUEST_BUDGET } from "@/constants/analytics";
 import {
   calculateCommitImpact,
@@ -28,14 +29,6 @@ import { normalizeUsername } from "@/lib/utils/username";
 import type { GitHubCommitDetails } from "@/types/github";
 import type { RepositoryInsight } from "@/types/repository";
 
-async function safe<T>(promise: Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await promise;
-  } catch {
-    return fallback;
-  }
-}
-
 async function loadRepositoryInsight(
   rawOwner: string,
   rawRepository: string,
@@ -49,17 +42,21 @@ async function loadRepositoryInsight(
     return null;
   }
   if (!owner || !/^[\w.-]{1,100}$/.test(repositoryName)) return null;
+  refresh = allowRefresh("repository:" + owner + "/" + repositoryName, refresh);
   const repository = await getRepository(owner, repositoryName, refresh);
   if (!repository || repository.owner?.login.toLowerCase() !== owner) return null;
   const dates = rangeDates("90D");
-  const [languageBytes, commits, pullRequests, issues, releases, workflowRuns, tree, community] =
+  let incomplete = false;
+  async function safe<T>(promise: Promise<T>, fallback: T): Promise<T> {
+    try { return await promise; }
+    catch { incomplete = true; return fallback; }
+  }
+  const [languageBytes, historyCommits, pullRequests, issues, releases, workflowRuns, tree, community] =
     await Promise.all([
       safe(getRepositoryLanguages(owner, repository.name, refresh), {}),
       safe(
         getCommits(owner, repository.name, {
           author: owner,
-          from: dates.currentFrom,
-          to: dates.currentTo,
           perPage: 100,
           refresh,
         }),
@@ -75,6 +72,10 @@ async function loadRepositoryInsight(
       }),
       safe(getCommunityProfile(owner, repository.name, refresh), null),
     ]);
+  const commits = historyCommits.filter((commit) => {
+    const date = new Date(commit.commit.author?.date ?? commit.commit.committer?.date ?? 0);
+    return date >= dates.currentFrom && date <= dates.currentTo;
+  });
   const commitDetails = (
     await Promise.all(
       commits.slice(0, GITHUB_REQUEST_BUDGET.deepCommitDetails).map((commit) =>
@@ -82,10 +83,11 @@ async function loadRepositoryInsight(
       ),
     )
   ).filter((commit): commit is GitHubCommitDetails => commit !== null);
-  const revival = detectRevival(repository, commits);
+  const revival = detectRevival(repository, historyCommits);
   const practices = detectEngineeringPractices(tree.entries, community);
 
   return {
+    incomplete: incomplete || tree.truncated,
     repository,
     languages: calculateLanguageBytes(languageBytes),
     commits,

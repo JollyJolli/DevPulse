@@ -60,11 +60,16 @@ export function ProfileDashboard({
           <PortfolioSections data={data} dictionary={dictionary} />
           <EvolutionSections data={data} dictionary={dictionary} />
         </main>
-        <footer className="flex flex-col justify-between gap-3 border-x-2 border-b-2 border-black bg-[#F4F1E8] px-6 py-8 text-sm font-semiboldHamilton md:flex-row md:px-10">
+        <footer className="flex flex-col justify-between gap-3 border-x-2 border-b-2 border-black bg-[#F4F1E8] px-6 py-8 text-sm font-semibold md:flex-row md:px-10">
           <Link href={`/?lang=${data.locale}`} className="font-black hover:underline">
             DevPulse
           </Link>
-          <a href={data.user.html_url} target="_blank" rel="noreferrer" className="text-black/50 hover:text-black">
+          <a
+            href={data.user.html_url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-black/50 hover:text-black"
+          >
             GitHub · @{data.user.login}
           </a>
         </footer>

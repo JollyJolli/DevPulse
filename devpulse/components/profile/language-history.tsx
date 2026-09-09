@@ -1,9 +1,10 @@
 import { ArrowUpRight, Code2 } from "lucide-react";
+import Link from "next/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import type { Dictionary } from "@/lib/i18n/en";
 import type { ProfileDashboardData } from "@/types/profile";
 
-const eraColors = ["bg-[#3567FF] text-white", "bg-[#FFD84D]", "bg-[#78E6D0]", "bg-[#FF6B8A]"];
+const eraColors = ["bg-[#3567FF] text-white", "bg-[#FFD84D] text-black", "bg-[#78E6D0] text-black", "bg-[#FF6B8A] text-black"];
 
 export function LanguageHistory({
   data,
@@ -79,6 +80,7 @@ export function LanguageHistory({
                     {t.eras.repositoryShare}
                   </p>
                   <div className="mt-7 flex flex-wrap gap-2">
+                    <Link className="border border-current px-3 py-2 text-sm font-black underline" href={"/u/" + encodeURIComponent(data.user.login) + "/share?" + new URLSearchParams({ kind: "era", id: era.id, lang: data.locale })}>{t.profile.share}</Link>
                     {era.repositories.map((repo) => (
                       <a
                         key={repo.html_url}

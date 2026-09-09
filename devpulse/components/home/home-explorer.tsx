@@ -130,13 +130,13 @@ export function HomeExplorer({ dictionary: t, locale }: { dictionary: Dictionary
           <ConceptBlock color="bg-[#FFD84D]" icon={<BarChart3 />} title={t.home.overview} text={t.home.overviewText} />
           <ConceptBlock color="bg-[#FF6B8A]" icon={<Code2 />} title={t.home.deepDive} text={t.home.deepDiveText} />
           <div className="col-span-2 border-y-2 border-black bg-[#3567FF] p-7 text-white md:p-9">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-white/55">DevPulse model</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-white/55">{t.detail.model}</p>
             <div className="mt-6 grid gap-5 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
-              <FlowStep number="01" label="GitHub data" />
+              <FlowStep number="01" label={t.detail.githubData} />
               <ArrowRight className="hidden sm:block" aria-hidden="true" />
-              <FlowStep number="02" label="Transparent analytics" />
+              <FlowStep number="02" label={t.detail.analytics} />
               <ArrowRight className="hidden sm:block" aria-hidden="true" />
-              <FlowStep number="03" label="Explorable history" />
+              <FlowStep number="03" label={t.detail.history} />
             </div>
           </div>
           <ConceptBlock color="bg-[#78E6D0]" icon={<Clock3 />} title={t.home.honest} text={t.home.honestText} />

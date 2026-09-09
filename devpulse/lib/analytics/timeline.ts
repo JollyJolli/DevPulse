@@ -28,22 +28,20 @@ export function buildDeveloperTimeline(input: {
   const newest = [...original].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   )[0];
-  const mostStarred = [...original].sort((a, b) => b.stargazers_count - a.stargazers_count)[0];
 
   for (const [repo, title, description, rank] of [
     [oldest, oldest ? `Created ${oldest.name}` : "", "Oldest public original repository currently visible.", 90],
     [newest, newest ? `Created ${newest.name}` : "", "Newest public original repository.", 80],
-    [mostStarred, mostStarred ? `${mostStarred.name} leads the portfolio` : "", mostStarred ? `${mostStarred.stargazers_count} stars received.` : "", 85],
   ] as const) {
     if (!repo) continue;
     events.push({
       id: `repo-${repo.id}-${rank}`,
-      date: rank === 85 ? repo.pushed_at ?? repo.updated_at : repo.created_at,
-      year: rank === 85 ? "NOW" : String(new Date(repo.created_at).getUTCFullYear()),
+      date: repo.created_at,
+      year: String(new Date(repo.created_at).getUTCFullYear()),
       title,
       description,
       href: repo.html_url,
-      kind: rank === 85 ? "record" : "repository",
+      kind: "repository",
       rank,
     });
   }

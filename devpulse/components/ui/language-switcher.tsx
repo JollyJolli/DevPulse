@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LanguageLink } from "@/components/ui/language-link";
 import type { Locale } from "@/types/analytics";
 
 export function LanguageSwitcher({
@@ -18,11 +18,11 @@ export function LanguageSwitcher({
       aria-label="Language / Idioma"
     >
       {(["en", "es"] as const).map((item) => (
-        <Link
+        <LanguageLink
           key={item}
           href={hrefFor(item)}
-          hrefLang={item}
-          aria-current={locale === item ? "page" : undefined}
+          locale={item}
+          selected={locale === item}
           className={`px-3 py-2 uppercase transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
             locale === item
               ? "bg-[#FFD84D] text-black"
@@ -30,9 +30,7 @@ export function LanguageSwitcher({
                 ? "text-white hover:bg-white/10"
                 : "hover:bg-black hover:text-white"
           }`}
-        >
-          {item}
-        </Link>
+        />
       ))}
     </div>
   );

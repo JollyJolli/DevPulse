@@ -28,7 +28,9 @@ async function loadProfileComparison(
   return {
     left,
     right,
-    observations: profileComparisonObservations(leftSnapshot, rightSnapshot),
+    observations: leftSnapshot.source === rightSnapshot.source
+      ? profileComparisonObservations(leftSnapshot, rightSnapshot, locale)
+      : [],
   };
 }
 
@@ -45,9 +47,18 @@ async function loadYearComparison(
   rawUsername: string,
   fromYear: number,
   toYear: number,
+  locale: Locale = "en",
 ): Promise<YearComparison | null> {
   const username = normalizeUsername(rawUsername);
-  if (!username || !Number.isInteger(fromYear) || !Number.isInteger(toYear)) return null;
+  const currentYear = new Date().getUTCFullYear();
+  if (
+    !username ||
+    !Number.isInteger(fromYear) ||
+    !Number.isInteger(toYear) ||
+    fromYear < 2008 ||
+    toYear > currentYear ||
+    fromYear >= toYear
+  ) return null;
   const [user, repositories] = await Promise.all([
     getGitHubUser(username),
     getRepositories(username),
@@ -68,7 +79,7 @@ async function loadYearComparison(
     userLogin: user.login,
     from,
     to,
-    observations: profileComparisonObservations(from, to),
+    observations: profileComparisonObservations(from, to, locale),
   };
 }
 

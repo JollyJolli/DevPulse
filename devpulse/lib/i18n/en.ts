@@ -1,4 +1,5 @@
 export const en = {
+  detail: { range: "Range", language: "Language", open: "Open", merged: "Merged", medianMerge: "Median merge time", scope: "Commit impact samples up to 12 owner-authored commits from the latest 100 commits, filtered to 90 days. Revival detection uses the latest 100 authored commits. Other sections use the latest public API page; these are not lifetime totals.", model: "DevPulse model", githubData: "GitHub data", analytics: "Transparent analytics", history: "Explorable history", periodMilestones: "Milestones from this period; historical unlock dates are not available." },
   languageName: "English",
   navigation: {
     home: "Home",

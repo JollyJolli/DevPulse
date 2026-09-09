@@ -42,6 +42,7 @@ export type PullRequestAnalytics = {
 };
 
 export type RepositoryInsight = {
+  incomplete: boolean;
   repository: GitHubRepository;
   languages: Array<{ name: string; bytes: number; percentage: number }>;
   commits: GitHubCommit[];

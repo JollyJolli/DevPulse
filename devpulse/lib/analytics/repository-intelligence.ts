@@ -1,6 +1,6 @@
 import { GITHUB_REQUEST_BUDGET, REVIVAL_GAP_DAYS } from "@/constants/analytics";
 import { classifyProjectLifecycle } from "@/lib/analytics/repositories";
-import { daysBetween } from "@/lib/utils/dates";
+import { daysBetween, daysSince } from "@/lib/utils/dates";
 import { mean, median, percentage, sum } from "@/lib/utils/numbers";
 import type { ProjectLifecycle, Revival } from "@/types/analytics";
 import type {
@@ -34,16 +34,16 @@ export function detectEngineeringPractices(
     { id: "readme", label: "README", detected: Boolean(community?.files.readme) || has(/(^|\/)readme\./), evidence: community?.files.readme ? "GitHub community profile" : has(/(^|\/)readme\./) ? "Repository tree" : null },
     { id: "tests", label: "Tests", detected: has(/(^|\/)(__tests__|tests?|spec)(\/|\.)|\.(test|spec)\.[a-z]+$/), evidence: has(/(^|\/)(__tests__|tests?|spec)(\/|\.)|\.(test|spec)\.[a-z]+$/) ? "Test paths found" : null },
     { id: "ci", label: "CI / Actions", detected: has(/^\.github\/workflows\//), evidence: has(/^\.github\/workflows\//) ? ".github/workflows" : null },
-    { id: "lint", label: "Linting", detected: has(/(^|\/)(eslint|biome|ruff|pylint|golangci)/), evidence: has(/(^|\/)(eslint|biome|ruff|pylint|golangci)/) ? "Lint configuration" : null },
-    { id: "format", label: "Formatting", detected: has(/(^|\/)(prettier|biome|editorconfig)/), evidence: has(/(^|\/)(prettier|biome|editorconfig)/) ? "Formatting configuration" : null },
-    { id: "docker", label: "Container setup", detected: has(/(^|\/)(dockerfile|compose\.ya?ml)$/), evidence: has(/(^|\/)(dockerfile|compose\.ya?ml)$/) ? "Docker configuration" : null },
+    { id: "lint", label: "Linting", detected: has(/(^|\/)\.?((eslint|biome|ruff|pylint|golangci))/), evidence: has(/(^|\/)\.?((eslint|biome|ruff|pylint|golangci))/) ? "Lint configuration" : null },
+    { id: "format", label: "Formatting", detected: has(/(^|\/)\.?(prettier|biome|editorconfig)/), evidence: has(/(^|\/)\.?(prettier|biome|editorconfig)/) ? "Formatting configuration" : null },
+    { id: "docker", label: "Container setup", detected: has(/(^|\/)(dockerfile|(?:docker-)?compose\.ya?ml)$/), evidence: has(/(^|\/)(dockerfile|(?:docker-)?compose\.ya?ml)$/) ? "Docker configuration" : null },
     { id: "typescript", label: "TypeScript config", detected: has(/(^|\/)tsconfig\.json$/), evidence: has(/(^|\/)tsconfig\.json$/) ? "tsconfig.json" : null },
     { id: "contributing", label: "Contributing guide", detected: Boolean(community?.files.contributing) || has(/(^|\/)contributing\./), evidence: community?.files.contributing ? "GitHub community profile" : has(/(^|\/)contributing\./) ? "Repository tree" : null },
   ];
 }
 
 export function calculateCommitImpact(details: readonly GitHubCommitDetails[]): CommitImpact {
-  const sampled = details.slice(0, GITHUB_REQUEST_BUDGET.deepCommitDetails);
+  const sampled = details.filter((commit) => commit.stats).slice(0, GITHUB_REQUEST_BUDGET.deepCommitDetails);
   const sizes = sampled.map((commit) => commit.stats?.total ?? 0);
   const additions = sum(sampled.map((commit) => commit.stats?.additions ?? 0));
   const deletions = sum(sampled.map((commit) => commit.stats?.deletions ?? 0));
@@ -118,5 +118,7 @@ export function repositoryLifecycleFromEvidence(
   commits: readonly GitHubCommit[],
   revival: Revival | null,
 ): ProjectLifecycle {
-  return classifyProjectLifecycle(repository, commits.length, { revived: Boolean(revival) });
+  return classifyProjectLifecycle(repository, commits.length, {
+    revived: Boolean(revival && daysSince(revival.resumedAt) <= 30 && daysSince(repository.pushed_at) <= 30),
+  });
 }

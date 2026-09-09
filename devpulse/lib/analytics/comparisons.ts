@@ -19,7 +19,11 @@ export function buildPeriodSnapshot(
     activeDays: activity.activeDays,
     longestStreak: activity.longestStreak,
     focus: focus.score,
-    activeRepositories: contributionData.repoContributions.length,
+    activeRepositories: new Set(
+      contributionData.repoContributions
+        .filter((repository) => repository.count > 0)
+        .map((repository) => repository.nameWithOwner.toLowerCase()),
+    ).size,
     dominantLanguage: languages[0]?.name ?? null,
     languageDiversity: languages.length,
     source: contributionData.source,
@@ -27,11 +31,20 @@ export function buildPeriodSnapshot(
   };
 }
 
-export function profileComparisonObservations(left: PeriodSnapshot, right: PeriodSnapshot): string[] {
+export function profileComparisonObservations(
+  left: PeriodSnapshot,
+  right: PeriodSnapshot,
+  locale: "en" | "es" = "en",
+): string[] {
   const observations: string[] = [];
+  const spanish = locale === "es";
   const focused = left.focus === right.focus ? null : left.focus > right.focus ? left : right;
   if (focused) {
-    observations.push(`${focused.label}'s measured activity is concentrated across fewer or more dominant repositories.`);
+    observations.push(
+      spanish
+        ? "La actividad medida de " + focused.label + " está más concentrada en sus repositorios dominantes."
+        : focused.label + "'s measured activity is more concentrated in dominant repositories.",
+    );
   }
   const broader =
     left.activeRepositories === right.activeRepositories
@@ -39,13 +52,27 @@ export function profileComparisonObservations(left: PeriodSnapshot, right: Perio
       : left.activeRepositories > right.activeRepositories
         ? left
         : right;
-  if (broader) observations.push(`${broader.label} touched more repositories in this period.`);
+  if (broader) {
+    observations.push(
+      spanish
+        ? broader.label + " registró actividad en más repositorios durante este periodo."
+        : broader.label + " touched more repositories in this period.",
+    );
+  }
   if (left.dominantLanguage && right.dominantLanguage && left.dominantLanguage !== right.dominantLanguage) {
     observations.push(
-      `${left.label}'s leading active language is ${left.dominantLanguage}; ${right.label}'s is ${right.dominantLanguage}.`,
+      spanish
+        ? "El lenguaje activo principal de " + left.label + " es " + left.dominantLanguage + "; el de " + right.label + " es " + right.dominantLanguage + "."
+        : left.label + "'s leading active language is " + left.dominantLanguage + "; " + right.label + "'s is " + right.dominantLanguage + ".",
     );
   }
   const active = left.activeDays === right.activeDays ? null : left.activeDays > right.activeDays ? left : right;
-  if (active) observations.push(`${active.label} was active on more calendar days in the selected period.`);
+  if (active) {
+    observations.push(
+      spanish
+        ? active.label + " tuvo actividad en más días del calendario durante el periodo seleccionado."
+        : active.label + " was active on more calendar days in the selected period.",
+    );
+  }
   return observations.slice(0, 4);
 }

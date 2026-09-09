@@ -172,7 +172,7 @@ export function buildEventFallback(
 
   return {
     source: "events",
-    limited: range !== "7D" && range !== "30D",
+    limited: true,
     totalContributions: filtered.length,
     totalCommits: filtered.filter((event) => event.type === "PushEvent").length,
     totalIssues: filtered.filter((event) => event.type === "IssuesEvent").length,

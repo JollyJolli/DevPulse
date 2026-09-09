@@ -2,7 +2,13 @@ import { clamp, sum } from "@/lib/utils/numbers";
 import type { FocusResult, RepoContribution } from "@/types/analytics";
 
 export function calculateFocus(repoContributions: readonly RepoContribution[]): FocusResult {
-  const counts = repoContributions.map((repo) => repo.count).filter((count) => count > 0);
+  const totalsByRepository = new Map<string, number>();
+  for (const repository of repoContributions) {
+    if (repository.count <= 0) continue;
+    const key = repository.nameWithOwner.toLowerCase();
+    totalsByRepository.set(key, (totalsByRepository.get(key) ?? 0) + repository.count);
+  }
+  const counts = [...totalsByRepository.values()].sort((a, b) => b - a);
   const total = sum(counts);
   if (!total) {
     return {

@@ -42,6 +42,7 @@ export function detectDeveloperEras(
       })
       .sort(
         (a, b) =>
+          Number(b.language === group.dominantLanguage) - Number(a.language === group.dominantLanguage) ||
           b.stargazers_count - a.stargazers_count ||
           new Date(b.pushed_at ?? b.updated_at).getTime() -
             new Date(a.pushed_at ?? a.updated_at).getTime(),

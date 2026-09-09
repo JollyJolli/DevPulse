@@ -93,6 +93,7 @@ export function buildActiveProjects(
   if (!projects.length) {
     projects = repositories
       .filter((repo) => !repo.archived)
+      .sort((a, b) => new Date(b.pushed_at ?? 0).getTime() - new Date(a.pushed_at ?? 0).getTime())
       .slice(0, 8)
       .map((repo) => ({
         name: repo.name,
@@ -106,7 +107,14 @@ export function buildActiveProjects(
         health: calculateRepositoryHealth(repo, now),
       }));
   }
-  return projects.slice(0, 8);
+  return projects
+    .sort(
+      (a, b) =>
+        b.count - a.count ||
+        new Date(b.repo?.pushed_at ?? 0).getTime() -
+          new Date(a.repo?.pushed_at ?? 0).getTime(),
+    )
+    .slice(0, 8);
 }
 
 export function classifyGraveyard(

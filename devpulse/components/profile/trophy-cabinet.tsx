@@ -1,4 +1,5 @@
 import { Award } from "lucide-react";
+import Link from "next/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { trophyDescription, trophyName, trophyTier } from "@/lib/i18n/trophies";
 import type { Dictionary } from "@/lib/i18n/en";
@@ -60,6 +61,7 @@ export function TrophyCabinet({
               {trophyDescription(trophy.family, trophy.description, data.locale)}
             </p>
             <p className="mt-5 text-3xl font-black">{trophy.formattedValue}</p>
+            <Link className="mt-3 inline-block text-sm font-black underline" href={"/u/" + encodeURIComponent(data.user.login) + "/share?" + new URLSearchParams({ kind: "trophy", id: trophy.family + "|" + data.range, lang: data.locale })}>{data.locale === "es" ? "Compartir" : "Share"}</Link>
           </article>
         ))}
       </div>

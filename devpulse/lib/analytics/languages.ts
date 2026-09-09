@@ -5,13 +5,14 @@ import type { GitHubRepository } from "@/types/github";
 export function calculateLanguageDistribution(
   repositories: readonly GitHubRepository[],
   activeProjects: readonly RepoContribution[],
+  allowPortfolioFallback = false,
 ): LanguageStat[] {
   const repoMap = new Map(repositories.map((repo) => [repo.full_name.toLowerCase(), repo]));
   const active = new Map<string, { value: number; repositories: Set<number>; firstYear: number }>();
 
   for (const project of activeProjects) {
     const repo = repoMap.get(project.nameWithOwner.toLowerCase());
-    if (!repo?.language) continue;
+    if (!repo?.language || project.count <= 0) continue;
     const existing = active.get(repo.language) ?? {
       value: 0,
       repositories: new Set<number>(),
@@ -23,7 +24,7 @@ export function calculateLanguageDistribution(
     active.set(repo.language, existing);
   }
 
-  if (!active.size) {
+  if (!active.size && allowPortfolioFallback) {
     for (const repo of repositories) {
       if (!repo.language || repo.archived || repo.fork) continue;
       const existing = active.get(repo.language) ?? {
@@ -47,8 +48,7 @@ export function calculateLanguageDistribution(
       repositoryCount: item.repositories.size,
       firstSeenYear: item.firstYear,
     }))
-    .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
-    .slice(0, 10);
+    .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name));
 }
 
 export function buildTechJourney(repositories: readonly GitHubRepository[]): TechJourneyYear[] {

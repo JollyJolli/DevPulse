@@ -2,6 +2,7 @@ import { ArrowUpRight, Archive } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Stat } from "@/components/ui/stat";
 import { relativeAge } from "@/lib/utils/dates";
+import { localizeEvidence } from "@/lib/i18n/evidence";
 import { formatNumber } from "@/lib/utils/numbers";
 import type { Dictionary } from "@/lib/i18n/en";
 import type { GitHubRepository } from "@/types/github";
@@ -101,7 +102,7 @@ export function PortfolioSections({
                 <div>
                   <p className="text-xs font-bold uppercase text-white/35">{t.graveyard.evidence}</p>
                   <ul className="mt-2 space-y-1 text-sm font-semibold text-white/55">
-                    {entry.evidence.map((evidence) => <li key={evidence}>{evidence}</li>)}
+                    {entry.evidence.map((evidence) => <li key={evidence}>{localizeEvidence(evidence, data.locale)}</li>)}
                   </ul>
                 </div>
               </article>
